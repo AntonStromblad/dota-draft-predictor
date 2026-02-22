@@ -1,0 +1,66 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #121212;
+  color: #ffffff;
+  text-align: center;
+  margin: 0;
+  padding: 50px;
+}
+
+#app {
+  max-width: 600px;
+  margin: 0 auto;
+  background: #1e1e1e;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+.draft-container {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.team {
+  width: 45%;
+}
+
+.radiant h2 { color: #5fb15d; }
+.dire h2 { color: #cc4135; }
+
+input {
+  width: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+  background: #2a2a2a;
+  border: 1px solid #444;
+  color: white;
+  border-radius: 5px;
+}
+
+button {
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  font-size: 18px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-bottom: 20px;
+  transition: 0.2s;
+}
+
+button:hover { background-color: #357abd; }
+
+.bar-container {
+  display: flex;
+  height: 30px;
+  width: 100%;
+  background-color: #333;
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.radiant-bar { background-color: #5fb15d; width: 50%; transition: width 0.5s; }
+.dire-bar { background-color: #cc4135; width: 50%; transition: width 0.5s; }

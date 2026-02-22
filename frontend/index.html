@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="sv">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dota 2 AI Predictor</title>
+  </head>
+  <body>
+    <div id="app">
+      <h1>Dota 2 AI Draft Predictor 🧙‍♂️</h1>
+      
+      <div class="draft-container">
+        <div class="team radiant">
+          <h2>Radiant 🌿</h2>
+          <p>Ange Hero IDs (ex: 1, 14, 52, 2, 6):</p>
+          <input type="text" id="radiant-picks" placeholder="1, 14, 52..." />
+        </div>
+        
+        <div class="team dire">
+          <h2>Dire 🔥</h2>
+          <p>Ange Hero IDs (ex: 8, 11, 44, 10, 3):</p>
+          <input type="text" id="dire-picks" placeholder="8, 11, 44..." />
+        </div>
+      </div>
+
+      <button id="predict-btn">🔮 Fråga AI:n</button>
+
+      <div id="result">
+        <h2 id="prediction-text">Väntar på draft...</h2>
+        <div class="bar-container">
+          <div id="radiant-bar" class="bar radiant-bar"></div>
+          <div id="dire-bar" class="bar dire-bar"></div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
