@@ -2,6 +2,7 @@ import cloudscraper
 import json
 import time
 import os
+import requests
 
 STRATZ_TOKEN = "KEY"
 
@@ -42,7 +43,7 @@ def fetch_hero_picks(total_leagues_to_check=10, matches_per_league=50):
             "skipLeague": skip_league,
             "matchesPerLeague": matches_per_league
         }
-        
+        API_URL = ""
         response = scraper.post(
             API_URL, 
             json={"query": query, "variables": variables}, 
@@ -59,7 +60,6 @@ def fetch_hero_picks(total_leagues_to_check=10, matches_per_league=50):
                 
             for league in leagues:
                 matches = league.get('matches', [])
-                league_name = league.get('displayName', 'Okänd Liga')
                 valid_matches = []
                 if not matches:
                     continue
@@ -80,7 +80,53 @@ def fetch_hero_picks(total_leagues_to_check=10, matches_per_league=50):
     file_path = "raw_data/pro_picks.json"
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(all_matches, f, indent=2, ensure_ascii=False)
-        
+
+
+def fetch_heroId_to_name():
+    response = requests.get("https://api.opendota.com/api/heroes",[])
+    heroes_data = response.json()
+
+
+    hero_dict = {hero["id"] : hero["localized_name"] for chunk in heroes_data for hero in chunk}
+    print(hero_dict)
+
+
+def fetch_hero_picks_normal_matches():
+    all_matches = []
+    responses = requests.get("https://api.opendota.com/api/publicMatches", params={"min_rank" : 80}).json()
+    for response in responses:
+        match = {}
+        match_id = response.get("match_id",0)
+        radiant_win = response.get("radiant_win", True)
+        rank = response.get("avg_rank_tier", 75)
+        radiant_team : dict= response.get("radiant_team", [])
+        dire_team = response.get("dire_team", [])
+        players = []
+        for player,hero_id in radiant_team:
+            {"isRadiant": True, "heroId":hero_id, "hero": {"displayName": ""}}
+        match = {"id":match_id, "didRadiantWin":radiant_win, "rank":rank, "players" : players}
+
 
 if __name__ == "__main__":
-    fetch_hero_picks(total_leagues_to_check=20, matches_per_league=100)
+    #fetch_hero_picks(total_leagues_to_check=20, matches_per_league=100)
+    fetch_heroId_to_name()
+
+# {
+#     "id": 8394100070,
+#     "didRadiantWin": true,
+#     "rank": 80,
+#     "players": [
+#       {
+#         "isRadiant": true,
+#         "heroId": 94,
+#         "hero": {
+#           "displayName": "Medusa"
+#         }
+#       },
+#       {
+#         "isRadiant": true,
+#         "heroId": 84,
+#         "hero": {
+#           "displayName": "Ogre Magi"
+#         }
+#       },
