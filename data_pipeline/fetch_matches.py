@@ -66,7 +66,7 @@ def fetch_hero_picks(total_leagues_to_check=10, matches_per_league=50):
                 if not matches:
                     continue
                 for match in matches:
-                    rank = match.get('rank', [])
+                    rank = match.get('rank', 0)
 
                     if rank >= 80:
                         #Ska vara högre än immoral
@@ -82,50 +82,90 @@ def fetch_hero_picks(total_leagues_to_check=10, matches_per_league=50):
 
 
 def fetch_heroId_to_name():
-    response = requests.get("https://api.opendota.com/api/heroes",[])
+    response = requests.get("https://api.opendota.com/api/heroes")
     heroes_data = response.json()
 
     hero_dict = {hero["id"]: hero["localized_name"] for hero in heroes_data}
 
     return hero_dict
 
-def fetch_hero_picks_normal_matches(id_to_hero :dict):
+def fetch_hero_picks_normal_matches(id_to_hero :dict,existerande_ids,less_than_match_id=None):
     all_matches = []
-    response = requests.get("https://api.opendota.com/api/publicMatches", params={"min_rank" : 80}).json()
+    params = {"min_rank" : 80}
+    if less_than_match_id:
+        params["less_than_match_id"] = less_than_match_id
+
+    response = requests.get("https://api.opendota.com/api/publicMatches", params=params)
     matches = response.json()
+
+    minsta_match_id = None
+    if matches:
+        minsta_match_id = min(m.get("match_id", 0) for m in matches if m.get("match_id"))
+
     for match in matches:
-        match = {}
-        match_id = response.get("match_id",0)
-        radiant_win = response.get("radiant_win", True)
-        rank = response.get("avg_rank_tier", 75)
-        radiant_team = response.get("radiant_team", [])
-        dire_team = response.get("dire_team", [])
+
+        if match.get("game_mode",13) != 22 or match.get("match_id") in existerande_ids:
+            continue
+        match_id = match.get("match_id",0)
+        radiant_win = match.get("radiant_win", True)
+        rank = match.get("avg_rank_tier", 75)
+        radiant_team = match.get("radiant_team", [])
+        dire_team = match.get("dire_team", [])
         players = []
         for hero_id in radiant_team:
-            players.append({"isRadiant": True, "heroId":hero_id, "hero": {"displayName": f"{id_to_hero[hero_id]}"}})
+            players.append({"isRadiant": True, "heroId":hero_id, "hero": {"displayName": f"{id_to_hero.get(hero_id, "Unknown")}"}})
 
         for hero_id in dire_team:
-            players.append({"isRadiant": False, "heroId":hero_id, "hero": {"displayName": f"{id_to_hero[hero_id]}"}})
+            players.append({"isRadiant": False, "heroId":hero_id, "hero": {"displayName": f"{id_to_hero.get(hero_id, "Unknown")}"}})
 
         match = {"id":match_id, "didRadiantWin":radiant_win, "rank":rank, "players" : players}
         all_matches.append(match)
     
-    print(all_matches)
-    with open(file_path, "w", encoding="utf-8") as f:
-        json.dump(all_matches, f, indent=2, ensure_ascii=False)
+    return all_matches,minsta_match_id
 
 
 if __name__ == "__main__":
-    new_matches = []
     #form_pro_leagues = fetch_hero_picks(total_leagues_to_check=20, matches_per_league=100)
     #new_matches.extend(form_pro_leagues)
 
     dictionary = fetch_heroId_to_name()
-    from_normal = fetch_hero_picks_normal_matches(dictionary)
-    new_matches.extend(from_normal)
 
-    with open(file_path, "r", encoding="utf-8") as f:
-        gamla_matcher = json.load(f)
-        gamla_matcher.extend(new_matches)
+    if os.path.exists(file_path):
+        with open(file_path, "r", encoding="utf-8") as f:
+            gamla_matcher = json.load(f)
+    else:
+        gamla_matcher = []
+
+    existerande_ids = {match["id"] for match in gamla_matcher}
+
+    last_match_id = None
+
+    try:
+        for i in range(0, 500):
+            print(f"Hämtar batch {i+1} av 100...")
+
+            from_normal, last_match_id= fetch_hero_picks_normal_matches(dictionary, existerande_ids, last_match_id)
+            print(f"La till {len(from_normal)} matcher...")
+            gamla_matcher.extend(from_normal)
+
+            for match in from_normal:
+                existerande_ids.add(match["id"])
+            
+            if not last_match_id:
+                    print("Hittade inga fler matcher i API:et. Avbryter loopen...")
+                    break
+            
+            time.sleep(2)
+
+    except KeyboardInterrupt:
+        print("\nAvbruten av användaren! Hoppar ur loopen och sparar...")
+        
+    except Exception as e:
+        print(f"\nEtt fel uppstod på batch {i+1}: {e}")
+        print("Räddar datan vi hunnit hämta...")
+   
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(gamla_matcher, f, indent=2, ensure_ascii=False)
+
+    print(f"Klar! Sparade totalt {len(gamla_matcher)} matcher i filen.")
+    

@@ -11,7 +11,7 @@ predictBtn.addEventListener('click', async () => {
   const radiant = radiantInput.value.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
   const dire = direInput.value.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
 
-  predictionText.innerText = "Laddar AI:ns gissning... 🧠";
+  predictionText.innerText = "Laddar AI:ns gissning... ";
 
   try {
     const response = await fetch('http://localhost:8080/predict', {
